@@ -10,7 +10,7 @@ TRANSFORM = (
     (0,0), (1,0), (0,1), (1,1), (0,2), (1,2), (0,3), (1,3), (0,4), (1,4),
     (2,0), (3,0), (2,1), (3,1), (2,2), (3,2), (2,3), (3,3), (2,4), (3,4),
            (4,0), (5,0), (4,1),               (5,2), (4,3), (5,3),
-                          (5,1), (4,2),       (5,4), (4,4)
+                         (5,1), (4,2),        (5,4), (4,4)
 )
 
 KEYMAP = (
@@ -20,13 +20,7 @@ KEYMAP = (
                           Keycode.FORWARD_SLASH, Keycode.SPACE, Keycode.SHIFT, Keycode.SEMICOLON
 )
 
-def key_position(row, col, n_cols):
-    return row * n_cols + col
-
-translate = {
-    key_position(row, col, n_cols=len(COLS)): i
-    for i, (row, col) in enumerate(TRANSFORM)
-}
+transform_map = {key: i for i, key in enumerate(TRANSFORM)}
 
 keys = keypad.KeyMatrix(ROWS, COLS, columns_to_anodes=False)
 kbd = Keyboard(usb_hid.devices)
@@ -34,8 +28,9 @@ kbd = Keyboard(usb_hid.devices)
 while True:
     event = keys.events.get()
     if event:
-        key_number = event.key_number
+        key_position = keys.key_number_to_row_column(event.key_number)
+        keycode = KEYMAP[transform_map[key_position]]
         if event.pressed:
-            kbd.press(KEYMAP[translate[key_number]])
+            kbd.press(keycode)
         if event.released:
-            kbd.release(KEYMAP[translate[key_number]])
+            kbd.release(keycode)
